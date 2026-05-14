@@ -1,0 +1,2553 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>朝活コミュニティ - 目標管理アプリ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+            color: #333;
+            line-height: 1.5;
+            min-height: 100vh;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 12px;
+            min-height: 100vh;
+        }
+
+        /* ============ スクリーン管理 ============ */
+        .screen {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* ============ ボタン & フォーム要素 ============ */
+        button, input[type="button"], input[type="submit"] {
+            font-family: 'Noto Sans JP', sans-serif;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #26c6da 0%, #4dd0e1 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(38, 198, 210, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(38, 198, 210, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ff5252;
+        }
+
+        .btn-success {
+            background: #51cf66;
+            color: white;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        input[type="text"], input[type="email"], textarea, select {
+            font-family: 'Noto Sans JP', sans-serif;
+            width: 100%;
+            padding: 10px;
+            margin: 6px 0;
+            border: 2px solid #f0f0f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+
+        input[type="text"]:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #26c6da;
+            box-shadow: 0 0 0 3px rgba(38, 198, 210, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        /* ============ ヘッダー & タイトル ============ */
+        .header {
+            text-align: center;
+            margin-bottom: 12px;
+            padding: 8px 0 4px;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            color: #00838f;
+            margin-bottom: 2px;
+            line-height: 1.3;
+        }
+
+        .header p {
+            color: #888;
+            font-size: 12px;
+        }
+
+        .title-section {
+            margin-bottom: 10px;
+        }
+
+        .title-section h2 {
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        /* ============ カード & セクション ============ */
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+        }
+
+        .card-header {
+            font-weight: 500;
+            color: #00838f;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+
+        .greeting {
+            font-size: 16px;
+            font-weight: 700;
+            color: #00838f;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        /* ============ プログレス & ビジュアル ============ */
+        .growth-tree {
+            text-align: center;
+            padding: 6px 0;
+            margin: 0;
+        }
+
+        .plant-icon {
+            font-size: 48px;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .progress-label {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .streak-info {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* ============ チェックイン画面 ============ */
+        .theme-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .theme-button {
+            background: white;
+            border: 2px solid #f0f0f0;
+            border-radius: 10px;
+            padding: 10px 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+        }
+
+        .theme-button:hover, .theme-button.selected {
+            border-color: #26c6da;
+            background: #e0f7fa;
+            transform: translateY(-1px);
+        }
+
+        .theme-icon {
+            font-size: 24px;
+            margin-bottom: 2px;
+            display: block;
+        }
+
+        .learning-input {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0 0;
+        }
+
+        .learning-input label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        /* ============ メンバーリスト ============ */
+        .member-list {
+            margin: 16px 0;
+        }
+
+        .member-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .member-name {
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .reaction-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .reaction-btn {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: 2px solid #f0f0f0;
+            border-radius: 6px;
+            background: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .reaction-btn:hover {
+            border-color: #26c6da;
+            background: #e0f7fa;
+            transform: scale(1.1);
+        }
+
+        .reaction-btn.sent {
+            border-color: #26c6da;
+            background: #e0f7fa;
+        }
+
+        /* ============ 振り返りフォーム ============ */
+        .woop-step {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .woop-step-title {
+            font-weight: 600;
+            color: #00838f;
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+
+        .woop-step-description {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+
+        /* ============ 記録ストリップ ============ */
+        .record-strip {
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            padding: 4px 0;
+            margin: 6px 0 0;
+        }
+
+        .record-day {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            min-width: 36px;
+            padding: 4px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #f0f0f0;
+            font-size: 10px;
+        }
+
+        .record-day-label {
+            color: #999;
+            font-size: 10px;
+        }
+
+        .record-day-status {
+            font-size: 16px;
+        }
+
+        .record-day.done {
+            background: #e0f7fa;
+            border-color: #26c6da;
+        }
+
+        .record-day.rest {
+            opacity: 0.6;
+        }
+
+        .record-day.today {
+            background: #e0f7fa;
+            border-color: #00838f;
+            border-width: 2px;
+            box-shadow: 0 2px 8px rgba(255, 122, 69, 0.25);
+            transform: scale(1.06);
+            opacity: 1;
+        }
+        .record-day.today .record-day-label {
+            color: #00838f;
+            font-weight: 700;
+        }
+        /* スクロール時に右端のpadding調整で「今日」がしっかり右に余白を持って見える */
+        .record-strip {
+            scroll-behavior: smooth;
+            padding-right: 4px;
+        }
+
+        /* ============ 卒業関連 ============ */
+        .graduation-profile {
+            background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+            padding: 20px;
+            border-radius: 16px;
+            margin: 16px 0;
+            text-align: center;
+        }
+
+        .graduation-emoji {
+            font-size: 60px;
+            margin-bottom: 12px;
+        }
+
+        .graduation-message {
+            color: #333;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 12px 0;
+        }
+
+        /* ============ モーダル & メッセージ ============ */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .success-message {
+            background: #f0fff4;
+            border: 2px solid #51cf66;
+            color: #276824;
+            padding: 16px;
+            border-radius: 12px;
+            margin: 16px 0;
+            text-align: center;
+        }
+
+        .info-message {
+            background: #e0f7fa;
+            border: 2px solid #26c6da;
+            color: #d97706;
+            padding: 16px;
+            border-radius: 12px;
+            margin: 16px 0;
+        }
+
+        .compassion-message {
+            background: #f0f9ff;
+            border: 2px solid #3b82f6;
+            color: #1e40af;
+            padding: 16px;
+            border-radius: 12px;
+            margin: 16px 0;
+            line-height: 1.6;
+        }
+
+        /* ============ フッター & ナビゲーション ============ */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(8px);
+            border-top: 1px solid #b2ebf2;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+            padding: 4px 0 6px;
+            z-index: 100;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: 4px;
+            color: #999;
+            font-size: 10px;
+            cursor: pointer;
+            transition: color 0.2s;
+            text-decoration: none;
+            border: none;
+            background: none;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: #00838f;
+        }
+
+        .nav-icon {
+            font-size: 18px;
+        }
+
+        .container {
+            padding-bottom: 64px;
+        }
+
+        /* ============ レスポンシブ ============ */
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px 10px 64px;
+            }
+        }
+        @media (max-height: 720px) {
+            .plant-icon { font-size: 40px; }
+            .card { padding: 12px; margin-bottom: 8px; }
+        }
+
+        /* ============ アニメーション ============ */
+        .celebrate-pop {
+            animation: celebratePop 0.6s ease-out;
+        }
+
+        @keyframes celebratePop {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            70% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .bounce-in {
+            animation: bounceIn 0.4s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* ============ スライダー ============ */
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #f0f0f0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #26c6da 0%, #4dd0e1 100%);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(38, 198, 210, 0.3);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #26c6da 0%, #4dd0e1 100%);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(38, 198, 210, 0.3);
+        }
+
+        .difficulty-label {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        /* ============ チェックボックス ============ */
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        /* ============ 設定画面 ============ */
+        .settings-section {
+            margin: 24px 0;
+        }
+
+        .settings-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #00838f;
+            margin-bottom: 12px;
+        }
+
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .danger-zone {
+            background: #fff5f5;
+            border: 2px solid #ff6b6b;
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 24px;
+        }
+
+        .danger-zone-title {
+            color: #ff6b6b;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ============ オンボーディング ============ -->
+        <div id="onboardingScreen" class="screen active">
+            <div class="header">
+                <h1>朝活コミュニティへようこそ</h1>
+                <p>あなたの朝を、自分のものにしよう</p>
+            </div>
+
+            <div class="card">
+                <p style="margin-bottom: 16px; font-size: 14px; color: #666;">
+                    このアプリは、朝活の継続をサポートするツール。記録ではなく「学習」、競争ではなく「相互確認」が特徴です。
+                </p>
+                <button class="btn-primary" onclick="app.showOnboardingStep(1)">はじめる</button>
+            </div>
+        </div>
+
+        <!-- ============ オンボーディングステップ1: 名前 ============ -->
+        <div id="onboardingStep1Screen" class="screen">
+            <div class="header">
+                <h1>あなたについて</h1>
+                <p>ステップ 1 / 6</p>
+            </div>
+
+            <div class="card">
+                <div class="title-section">
+                    <h2>お名前を教えてください</h2>
+                </div>
+                <input type="text" id="nameInput" placeholder="例：田中太郎">
+                <div style="margin-top: 16px;">
+                    <button class="btn-primary" onclick="app.nextOnboardingStep(1)" style="width: 100%;">次へ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ オンボーディングステップ2: アイデンティティ宣言 ============ -->
+        <div id="onboardingStep2Screen" class="screen">
+            <div class="header">
+                <h1>あなたのアイデンティティ</h1>
+                <p>ステップ 2 / 6</p>
+            </div>
+
+            <div class="card">
+                <div class="title-section">
+                    <h2>私は◯ヶ月の朝活を通して、___な人になった</h2>
+                    <p style="color: #666; font-size: 14px; margin-top: 8px;">朝活を通じて、どんな人になりたいですか？ ◯ヶ月後には、そんな人になったとイメージして書いてください（過去形）</p>
+                </div>
+                <textarea id="identityInput" placeholder="例：毎朝を自分のものにして、充実した人生を送っている人になった"></textarea>
+
+                <div class="title-section" style="margin-top: 20px;">
+                    <h2>あなたが本当に手に入れたいことは？</h2>
+                    <p style="color: #666; font-size: 14px; margin-top: 8px;">「読書したい」「運動したい」の奥にある、本当の願いを書いてください。後から変更できます。</p>
+                </div>
+                <textarea id="trueGoalInput" placeholder="例：自分の成長を実感したい／心の余裕を取り戻したい／同じ志の仲間を作りたい"></textarea>
+
+                <div class="title-section" style="margin-top: 20px;">
+                    <h2>なぜ朝活ですか？</h2>
+                    <p style="color: #666; font-size: 14px; margin-top: 8px;">朝活を始めた理由は？</p>
+                </div>
+                <textarea id="whyInput" placeholder="例：自分の時間を取り戻したいから、同じ志を持つ人と繋がりたいから。"></textarea>
+
+                <div style="margin-top: 16px;">
+                    <button class="btn-secondary" onclick="app.showOnboardingStep(1)" style="width: 100%; margin-bottom: 8px;">戻る</button>
+                    <button class="btn-primary" onclick="app.nextOnboardingStep(2)" style="width: 100%;">次へ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ オンボーディングステップ3: 表層目標 ============ -->
+        <div id="onboardingStep3Screen" class="screen">
+            <div class="header">
+                <h1>あなたの目標</h1>
+                <p>ステップ 3 / 6</p>
+            </div>
+
+            <div class="card">
+                <div class="title-section">
+                    <h2>目標のタイトル</h2>
+                </div>
+                <input type="text" id="goalTitleInput" placeholder="例：毎朝30分の読書習慣">
+
+                <div class="title-section" style="margin-top: 20px;">
+                    <h2>Implementation Intention</h2>
+                    <p style="color: #666; font-size: 14px; margin-top: 8px;">朝起きたら、いつ・どこで何をしますか？（具体的に）</p>
+                </div>
+                <textarea id="ifThenInput" placeholder="例：朝食後に、リビングで30分読書する。"></textarea>
+
+                <div class="title-section" style="margin-top: 20px;">
+                    <h2>難度を教えてください（1-5）</h2>
+                    <input type="range" id="difficultyInput" min="1" max="5" value="3">
+                    <div class="difficulty-label"><span id="difficultyLabel">3</span> / 5</div>
+                </div>
+
+                <div style="margin-top: 16px;">
+                    <button class="btn-secondary" onclick="app.showOnboardingStep(2)" style="width: 100%; margin-bottom: 8px;">戻る</button>
+                    <button class="btn-primary" onclick="app.nextOnboardingStep(3)" style="width: 100%;">次へ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ オンボーディングステップ4: 期間選択 ============ -->
+        <div id="onboardingStep4Screen" class="screen">
+            <div class="header">
+                <h1>朝活の期間を選択</h1>
+                <p>ステップ 4 / 6</p>
+            </div>
+
+            <div class="card">
+                <div class="title-section">
+                    <h2>どのくらい続けたいですか？</h2>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 10px; margin: 16px 0;">
+                    <button class="btn-secondary" id="period3Btn" onclick="app.selectPeriod(3)" style="padding: 16px; font-size: 15px; text-align: left;">
+                        <div style="font-weight: 600; color: #333;">📅 3ヶ月（短期集中）</div>
+                        <div style="font-size: 12px; color: #999; margin-top: 4px;">約90日後に卒業予定</div>
+                    </button>
+                    <button class="btn-primary" id="period6Btn" onclick="app.selectPeriod(6)" style="padding: 16px; font-size: 15px; text-align: left;">
+                        <div style="font-weight: 600; color: white;">⭐ 6ヶ月（標準・推奨）</div>
+                        <div style="font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 4px;">約180日後に卒業予定</div>
+                    </button>
+                    <button class="btn-secondary" id="period12Btn" onclick="app.selectPeriod(12)" style="padding: 16px; font-size: 15px; text-align: left;">
+                        <div style="font-weight: 600; color: #333;">🌳 12ヶ月（じっくり）</div>
+                        <div style="font-size: 12px; color: #999; margin-top: 4px;">約365日後に卒業予定</div>
+                    </button>
+                    <button class="btn-secondary" id="periodUnlimitedBtn" onclick="app.selectPeriod(null)" style="padding: 16px; font-size: 15px; text-align: left;">
+                        <div style="font-weight: 600; color: #333;">🎯 無期限（自分のペースで）</div>
+                        <div style="font-size: 12px; color: #999; margin-top: 4px;">期間ラベルを自由入力</div>
+                    </button>
+                </div>
+
+                <!-- 無期限選択時の自由入力欄 -->
+                <div id="unlimitedPeriodInput" style="display: none; margin-top: 10px;">
+                    <p style="font-size: 13px; color: #666; margin-bottom: 6px;">期間ラベル（自由入力）</p>
+                    <input type="text" id="customPeriodLabel" placeholder="例：1年／2026年末まで／いつか">
+                </div>
+
+                <p style="font-size: 12px; color: #999; text-align: center; margin: 16px 0;">
+                    卒業日はいつでも変更でき、卒業を待たずに延長することもできます
+                </p>
+
+                <div style="margin-top: 16px;">
+                    <button class="btn-secondary" onclick="app.showOnboardingStep(3)" style="width: 100%; margin-bottom: 8px;">戻る</button>
+                    <button class="btn-primary" id="periodNextBtn" onclick="app.nextOnboardingStep(4)" style="width: 100%; opacity: 0.5; cursor: not-allowed;" disabled>次へ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ オンボーディングステップ5: 完了 ============ -->
+        <div id="onboardingStep5Screen" class="screen">
+            <div class="header">
+                <h1>セットアップ完了</h1>
+                <p>ステップ 5 / 6</p>
+            </div>
+
+            <div class="card">
+                <div class="graduation-profile" style="background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);">
+                    <div style="font-size: 48px; margin-bottom: 16px;">✨</div>
+                    <div id="onboardingCompletionMessage" style="font-size: 16px; font-weight: 600; color: #00838f; margin-bottom: 12px;"></div>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 12px;">
+                        あなたのアイデンティティと目標が登録されました。<br>
+                        明日の朝、まずはアプリを開いてチェックインしてください。
+                    </p>
+                </div>
+
+                <button class="btn-primary" onclick="app.completeOnboarding()" style="width: 100%; margin-top: 24px;">ホームへ</button>
+            </div>
+        </div>
+
+        <!-- ============ ホーム画面 ============ -->
+        <div id="homeScreen" class="screen">
+            <div class="header">
+                <div id="greetingMessage" class="greeting"></div>
+                <p id="currentDateDisplay"></p>
+            </div>
+
+            <!-- アイデンティティカード（新） -->
+            <div class="card" style="background: linear-gradient(135deg, #e0f7fa 0%, #e0f7fa 100%);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="flex: 1;">
+                        <div style="font-size: 12px; color: #999; margin-bottom: 4px;">私は<span id="homeIdentityPeriod"></span>の朝活を通して、</div>
+                        <div id="homeIdentityStatement" style="font-size: 18px; font-weight: 700; color: #00838f; line-height: 1.4;"></div>
+                    </div>
+                    <button onclick="app.openIdentityEditModal()" style="background: none; border: none; font-size: 18px; cursor: pointer; padding: 4px;">✏️</button>
+                </div>
+            </div>
+
+            <!-- あなたの積み上げカード -->
+            <div class="card" id="accumulationCard">
+                <div style="text-align: center; color: #999; padding: 16px;">読み込み中...</div>
+            </div>
+
+            <!-- フェーズ表示 -->
+            <div class="card">
+                <div id="phaseInfo" style="font-size: 12px; color: #999;"></div>
+            </div>
+
+            <!-- 進捗 + チェックイン（ファーストビュー集約） -->
+            <div class="card">
+                <div class="growth-tree">
+                    <div id="growthEmoji" class="plant-icon">🌱</div>
+                    <div id="growthStage" style="font-weight: 600; color: #333; font-size: 13px; margin-top: 4px;"></div>
+                    <div class="progress-label" id="progressLabel"></div>
+                </div>
+                <button class="btn-primary" onclick="app.goToCheckin()" style="width: 100%; padding: 12px; font-size: 15px; margin-top: 8px;">
+                    ✨ 今朝のチェックイン
+                </button>
+                <div id="recordStrip" class="record-strip"></div>
+            </div>
+
+            <!-- 今のあなたへ -->
+            <div class="card" id="compassionCard">
+                <div id="compassionMessage" style="font-size: 13px; line-height: 1.65; color: #555;"></div>
+            </div>
+
+            <!-- アクションボタン -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+                <button class="btn-secondary" onclick="app.goToReflection()" style="padding: 8px; font-size: 12px;">
+                    🔍 振り返り
+                </button>
+                <button class="btn-secondary" onclick="app.goToRecords()" style="padding: 8px; font-size: 12px;">
+                    📊 記録
+                </button>
+                <button class="btn-secondary" onclick="app.openShareModal()" style="padding: 8px; font-size: 12px;">
+                    🌅 シェア
+                </button>
+            </div>
+        </div>
+
+        <!-- ============ シェア画像モーダル ============ -->
+        <div id="shareModal" class="modal-overlay">
+            <div class="modal" style="max-width: 380px;">
+                <h2 style="text-align: center; margin-bottom: 12px;">シェア用カード</h2>
+                <p style="text-align: center; font-size: 13px; color: #777; margin-bottom: 12px;">
+                    画像を長押し保存、またはテキストをコピーしてZoomチャットに貼ってください。シェアするかは自由です。
+                </p>
+                <canvas id="shareCanvas" width="600" height="800" style="width: 100%; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.1);"></canvas>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
+                    <button class="btn-secondary" onclick="app.downloadShareImage()" style="padding: 10px;">📥 画像保存</button>
+                    <button class="btn-secondary" onclick="app.copyShareText()" style="padding: 10px;">📋 テキスト</button>
+                </div>
+                <button class="btn-secondary" onclick="app.closeShareModal()" style="width: 100%; padding: 10px; margin-top: 8px;">閉じる</button>
+            </div>
+        </div>
+
+        <!-- ============ チェックイン画面 ============ -->
+        <div id="checkinScreen" class="screen">
+            <div class="header">
+                <h1 id="checkinGreeting" style="font-size: 16px;"></h1>
+            </div>
+
+            <div class="card">
+                <div class="title-section">
+                    <h2>今朝は何をしましたか？</h2>
+                </div>
+
+                <div class="theme-selector" id="themeSelector"></div>
+
+                <div class="learning-input">
+                    <label>今朝の学び（任意）</label>
+                    <textarea id="learningInput" placeholder="気づいたこと、学んだことを一文で..." style="min-height: 50px;"></textarea>
+                </div>
+
+                <div class="learning-input" id="alignmentQuestion" style="display: none;">
+                    <label>表層目標と本音目標の整合性</label>
+                    <p style="font-size: 12px; color: #666; margin-bottom: 8px;">現在の目標をやることによって、あなたの本当の願いに近づいていますか？</p>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 6px;">
+                        <button class="btn-secondary alignment-btn" data-alignment="yes" style="padding: 10px; font-size: 13px; text-align: center;">はい、近づいている</button>
+                        <button class="btn-secondary alignment-btn" data-alignment="somewhat" style="padding: 10px; font-size: 13px; text-align: center;">少し近づいている</button>
+                        <button class="btn-secondary alignment-btn" data-alignment="unsure" style="padding: 10px; font-size: 13px; text-align: center;">分からない</button>
+                        <button class="btn-secondary alignment-btn" data-alignment="away" style="padding: 10px; font-size: 13px; text-align: center;">離れている気がする</button>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; margin-top: 12px;">
+                    <button class="btn-secondary" onclick="app.goHome()">戻る</button>
+                    <button class="btn-primary" onclick="app.submitCheckin()">記録する</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ 週次振り返り画面 ============ -->
+        <div id="reflectionScreen" class="screen">
+            <div class="header">
+                <h1>今週の朝活を振り返ろう</h1>
+                <p>WOOP フレームワーク（5分以内）</p>
+            </div>
+
+            <div class="card">
+                <div id="woopContainer"></div>
+
+                <div style="margin-top: 16px;">
+                    <button class="btn-secondary" onclick="app.goHome()" style="width: 100%; margin-bottom: 8px;">戻る</button>
+                    <button class="btn-primary" onclick="app.submitReflection()" style="width: 100%;">保存する</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ 過去の記録 ============ -->
+        <div id="recordsScreen" class="screen">
+            <div class="header">
+                <h1>あなたの記録</h1>
+            </div>
+
+            <div class="card">
+                <div id="recordsList"></div>
+                <button class="btn-secondary" onclick="app.goHome()" style="width: 100%; margin-top: 16px;">戻る</button>
+            </div>
+        </div>
+
+        <!-- ============ 設定画面 ============ -->
+        <div id="settingsScreen" class="screen">
+            <div class="header">
+                <h1>設定</h1>
+            </div>
+
+            <div class="card">
+                <div class="settings-section">
+                    <div class="settings-section-title">プロフィール</div>
+                    <div class="settings-item">
+                        <span>名前</span>
+                        <span id="settingName" style="font-weight: 600;"></span>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <div class="settings-section-title">アイデンティティと目標</div>
+                    <button class="btn-secondary" onclick="app.openSettingsIdentityEdit()" style="width: 100%; margin-bottom: 8px; text-align: left; padding: 12px;">
+                        <div style="font-weight: 600; color: #333;">アイデンティティ宣言を編集</div>
+                        <div id="settingIdentity" style="font-size: 12px; color: #999; margin-top: 4px;"></div>
+                    </button>
+                    <button class="btn-secondary" onclick="app.openSettingsTrueGoalEdit()" style="width: 100%; margin-bottom: 8px; text-align: left; padding: 12px;">
+                        <div style="font-weight: 600; color: #333;">本音目標を編集</div>
+                        <div id="settingTrueGoal" style="font-size: 12px; color: #999; margin-top: 4px;"></div>
+                    </button>
+                    <button class="btn-secondary" onclick="app.openSettingsPeriodEdit()" style="width: 100%; text-align: left; padding: 12px;">
+                        <div style="font-weight: 600; color: #333;">期間設定を変更</div>
+                        <div id="settingPeriod" style="font-size: 12px; color: #999; margin-top: 4px;"></div>
+                    </button>
+                </div>
+
+                <div class="settings-section">
+                    <div class="settings-section-title">コミュニティ設定</div>
+                    <button class="btn-secondary" onclick="app.openSettingsOperatorEmail()" style="width: 100%; margin-bottom: 8px; text-align: left; padding: 12px;">
+                        <div style="font-weight: 600; color: #333;">運営者のメールアドレス</div>
+                        <div id="settingOperatorEmail" style="font-size: 12px; color: #999; margin-top: 4px;"></div>
+                    </button>
+                    <button class="btn-secondary" onclick="app.openSettingsBuddyEdit()" style="width: 100%; margin-bottom: 8px; text-align: left; padding: 12px;">
+                        <div style="font-weight: 600; color: #333;">バディの名前（任意）</div>
+                        <div id="settingBuddy" style="font-size: 12px; color: #999; margin-top: 4px;"></div>
+                    </button>
+                </div>
+
+                <div class="settings-section">
+                    <div class="settings-section-title">コミュニティ出席連携</div>
+                    <button class="btn-secondary" onclick="app.openSettingsCommunityNameEdit()" style="width: 100%; margin-bottom: 8px; text-align: left; padding: 12px;">
+                        <div style="font-weight: 600; color: #333;">コミュニティ参加名</div>
+                        <div id="settingCommunityName" style="font-size: 12px; color: #999; margin-top: 4px;"></div>
+                        <div style="font-size: 11px; color: #999; margin-top: 4px;">出席フォームに記入している名前（Slack名）</div>
+                    </button>
+                    <button class="btn-secondary" onclick="app.openSettingsSessionMinutes()" style="width: 100%; text-align: left; padding: 12px;">
+                        <div style="font-weight: 600; color: #333;">1回の朝活時間（分）</div>
+                        <div id="settingSessionMinutes" style="font-size: 12px; color: #999; margin-top: 4px;"></div>
+                    </button>
+                    <p style="font-size: 11px; color: #999; margin-top: 8px;">出席データはコミュニティ共通の参加データシートから自動で取得します。Slack名を入れるだけで、あなたの参加実績が「💎 あなたの積み上げ」カードに反映されます。</p>
+                </div>
+
+                <div class="settings-section">
+                    <div class="settings-section-title">データ管理</div>
+                    <button class="btn-secondary" onclick="app.exportData()" style="width: 100%; margin-bottom: 8px;">📥 データをエクスポート</button>
+                    <button class="btn-secondary" onclick="app.importData()" style="width: 100%; margin-bottom: 8px;">📤 データをインポート</button>
+                </div>
+
+                <div class="danger-zone">
+                    <div class="danger-zone-title">データのリセット</div>
+                    <p style="font-size: 13px; color: #666; margin-bottom: 12px;">
+                        すべてのチェックイン記録・振り返り・設定を削除して最初からやり直します。
+                    </p>
+                    <button class="btn-danger" onclick="app.deleteAllData()" style="width: 100%;">すべてのデータを削除</button>
+                </div>
+
+                <button class="btn-secondary" onclick="app.goHome()" style="width: 100%; margin-top: 16px;">戻る</button>
+            </div>
+        </div>
+
+        <!-- ============ 卒業フロー ============ -->
+        <div id="graduationScreen" class="screen">
+            <div class="header">
+                <h1>朝活を卒業しますか？</h1>
+            </div>
+
+            <div class="card">
+                <div class="graduation-profile">
+                    <div style="font-size: 40px; margin-bottom: 12px;">🎓</div>
+                    <p style="color: #333; font-size: 14px; margin-bottom: 12px;">
+                        あなたが朝活を通じて学んだこと、<br>
+                        その成長をコミュニティと一緒に祝いたいです。
+                    </p>
+                    <p style="color: #00838f; font-weight: 600; font-size: 14px;">
+                        卒業は、あなたの成長を讃えるための瞬間です。
+                    </p>
+                </div>
+
+                <div class="title-section">
+                    <h2>あなたの物語を教えてください</h2>
+                    <p style="color: #666; font-size: 13px;">朝活で学んだことは何ですか？</p>
+                </div>
+                <textarea id="graduationMessage" placeholder="例：朝の時間を自分のものにする大切さ。そして同じ志を持つ人との繋がり。" style="min-height: 100px;"></textarea>
+
+                <div class="title-section">
+                    <h2>これからのステップは？</h2>
+                    <p style="color: #666; font-size: 13px;">（任意）</p>
+                </div>
+                <textarea id="nextStepMessage" placeholder="例：次はマラソン完走に挑戦します。" style="min-height: 80px;"></textarea>
+
+                <div style="margin-top: 16px;">
+                    <button class="btn-secondary" onclick="app.cancelGraduation()" style="width: 100%; margin-bottom: 8px;">いいえ、まだ続けます</button>
+                    <button class="btn-primary" onclick="app.confirmGraduation()" style="width: 100%;">卒業プロフィールを生成</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ 卒業完了画面 ============ -->
+        <div id="graduationCompleteScreen" class="screen">
+            <div class="header">
+                <h1>卒業おめでとうございます！</h1>
+            </div>
+
+            <div class="card">
+                <div class="graduation-profile">
+                    <div style="font-size: 60px; margin-bottom: 16px;">🎉</div>
+                    <div id="graduationProfile" style="text-align: left; background: white; padding: 16px; border-radius: 8px; margin: 16px 0;"></div>
+                    <p style="color: #666; font-size: 13px; margin-top: 12px;">
+                        このプロフィールは、コミュニティニュースレターに掲載される予定です。
+                    </p>
+                </div>
+
+                <button class="btn-primary" onclick="app.goHome()" style="width: 100%; margin-top: 16px;">ホームへ</button>
+            </div>
+        </div>
+
+        <!-- ============ ナビゲーションバー ============ -->
+        <div class="bottom-nav">
+            <button class="nav-item active" onclick="app.goHome()">
+                <div class="nav-icon">🏠</div>
+                <div>ホーム</div>
+            </button>
+            <button class="nav-item" onclick="app.goToCheckin()">
+                <div class="nav-icon">✨</div>
+                <div>チェック</div>
+            </button>
+            <button class="nav-item" onclick="app.goToReflection()">
+                <div class="nav-icon">🔍</div>
+                <div>振り返り</div>
+            </button>
+            <button class="nav-item" onclick="app.goToSettings()">
+                <div class="nav-icon">⚙️</div>
+                <div>設定</div>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ============ アプリケーション本体 ============
+        const app = {
+            // ============ データ管理 ============
+            data: {
+                userName: '',
+                communityName: '',
+                identityStatement: '',
+                identityStatementHistory: [],
+                trueGoal: '',
+                why: '',
+                goals: [],
+                checkins: [],
+                reflections: [],
+                graduated: false,
+                graduationMessage: '',
+                startDate: null,
+                periodMonths: 6,
+                periodLabel: null,
+                graduationDate: null,
+                milestoneShown: {
+                    day60: false,
+                    day90: false,
+                    day180: false,
+                    gradPrep: false
+                },
+                operatorEmail: 'youshow82@gmail.com',
+                buddyName: null,
+                sessionMinutes: 60,
+                attendanceCache: null
+            },
+
+            // ============ バックエンド定数（全ユーザー共通） ============
+            ATTENDANCE_SHEET_ID: '1EBQLkpihhPZSvOOSV8LNph3C_IRUISQx8adPAIsYjQE',
+            ATTENDANCE_FORM_GID: '122873365',  // フォームの回答1タブ
+            getAttendanceCsvUrl() {
+                return `https://docs.google.com/spreadsheets/d/${this.ATTENDANCE_SHEET_ID}/export?format=csv&gid=${this.ATTENDANCE_FORM_GID}`;
+            },
+
+            themes: [
+                { id: 'reading', icon: '📚', label: '読書' },
+                { id: 'exercise', icon: '💪', label: '運動' },
+                { id: 'work', icon: '💻', label: '作業' },
+                { id: 'meditation', icon: '🧘', label: '瞑想' },
+                { id: 'conversation', icon: '🗣️', label: '会話' }
+            ],
+
+            reactions: ['🎯', '✨', '💪', '👏', '🔥'],
+
+            // ============ コミュニティ出席連携 ============
+            async fetchAttendanceData(force = false) {
+                // Slack名（参加名）がないと照合できないのでスキップ
+                if (!this.data.communityName) return null;
+
+                // キャッシュ確認
+                if (!force && this.data.attendanceCache && this.data.attendanceCache.fetchedAt) {
+                    const now = Date.now();
+                    const cacheAge = now - this.data.attendanceCache.fetchedAt;
+                    if (cacheAge < 5 * 60 * 1000) { // 5分有効
+                        return this.data.attendanceCache.data;
+                    }
+                }
+
+                try {
+                    const response = await fetch(this.getAttendanceCsvUrl());
+                    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    const csv = await response.text();
+                    const data = this.parseAttendanceCSV(csv);
+                    if (!data) throw new Error('CSV解析失敗（ヘッダーが期待形式と異なる可能性）');
+
+                    // 直近のエラーをクリア
+                    this.lastAttendanceError = null;
+                    // キャッシュ保存
+                    this.data.attendanceCache = { data, fetchedAt: Date.now() };
+                    this.saveData();
+                    return data;
+                } catch (err) {
+                    // 直近のエラーを記録
+                    this.lastAttendanceError = err.message || String(err);
+                    // キャッシュがあれば返す
+                    if (this.data.attendanceCache && this.data.attendanceCache.data) {
+                        return this.data.attendanceCache.data;
+                    }
+                    console.error('Attendance fetch failed:', err);
+                    return null;
+                }
+            },
+
+            parseAttendanceCSV(csvText) {
+                const lines = csvText.split(/\r?\n/).filter(l => l.trim());
+                if (lines.length < 2) return null;
+
+                // ヘッダーをパース
+                const headerLine = lines[0];
+                const headers = headerLine.split(',').map(h => h.trim());
+                const nameIdx = headers.findIndex(h => h === 'お名前');
+                const dateIdx = headers.findIndex(h => h === '参加日');
+
+                if (nameIdx === -1 || dateIdx === -1) return null;
+
+                // 本人の出席記録を抽出
+                const communityName = this.data.communityName.trim();
+                const records = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                    if (cols.length <= Math.max(nameIdx, dateIdx)) continue;
+                    const name = cols[nameIdx];
+                    const date = cols[dateIdx];
+                    if (!date || !name) continue;
+                    if (name === communityName) {
+                        records.push({ date, name });
+                    }
+                }
+
+                // 重複を削除（同日同名は1回）
+                const uniqueDates = [...new Set(records.map(r => r.date))];
+
+                // 統計計算
+                const today = new Date();
+                const currentMonthStr = today.toISOString().substring(0, 7);
+                const thisMonth = uniqueDates.filter(d => d.substring(0, 7) === currentMonthStr).length;
+                const total = uniqueDates.length;
+                const lastDate = uniqueDates.length > 0 ? uniqueDates.sort().reverse()[0] : null;
+                const accumulatedMinutes = total * (this.data.sessionMinutes || 60);
+
+                return { total, thisMonth, lastDate, accumulatedMinutes };
+            },
+
+            formatAccumulatedTime(minutes) {
+                if (minutes < 60) {
+                    return `${minutes}分`;
+                } else if (minutes < 600) {
+                    const hours = Math.floor(minutes / 60);
+                    const mins = minutes % 60;
+                    return mins > 0 ? `${hours}時間 ${mins}分` : `${hours}時間`;
+                } else {
+                    const hours = Math.floor(minutes / 60);
+                    return `${hours}時間`;
+                }
+            },
+
+            // ============ 初期化 ============
+            init() {
+                this.loadData();
+                this.migrateData();
+                if (!this.data.userName) {
+                    this.showScreen('onboardingScreen');
+                } else {
+                    this.showScreen('homeScreen');
+                    this.checkMilestones();
+                    this.updateHome();
+                }
+                this.updateCurrentDate();
+                document.getElementById('difficultyInput').addEventListener('input', (e) => {
+                    document.getElementById('difficultyLabel').textContent = e.target.value;
+                });
+            },
+
+            loadData() {
+                const stored = localStorage.getItem('asakatsuAppData');
+                if (stored) {
+                    this.data = JSON.parse(stored);
+                }
+            },
+
+            migrateData() {
+                // 後方互換：古い identity フィールドを identityStatement に移行
+                if (this.data.identity && !this.data.identityStatement) {
+                    this.data.identityStatement = this.data.identity;
+                }
+                if (!this.data.identityStatementHistory && this.data.identityStatement) {
+                    this.data.identityStatementHistory = [
+                        { date: this.data.startDate || new Date().toISOString(), statement: this.data.identityStatement }
+                    ];
+                } else if (!this.data.identityStatementHistory) {
+                    this.data.identityStatementHistory = [];
+                }
+                // 新フィールドのデフォルト値設定
+                if (!this.data.trueGoal) this.data.trueGoal = '';
+                if (!this.data.startDate && this.data.checkins.length > 0) {
+                    // 最古のチェックイン日からstartDateを推定
+                    const dates = this.data.checkins.map(c => new Date(c.date)).sort((a, b) => a - b);
+                    this.data.startDate = dates[0].toISOString();
+                } else if (!this.data.startDate) {
+                    this.data.startDate = new Date().toISOString();
+                }
+                if (!this.data.periodMonths) this.data.periodMonths = 6;
+                if (!this.data.periodLabel) {
+                    this.data.periodLabel = this.data.periodMonths ? `${this.data.periodMonths}ヶ月` : '6ヶ月';
+                }
+                if (!this.data.graduationDate) {
+                    const start = new Date(this.data.startDate);
+                    const grad = new Date(start.getTime() + this.data.periodMonths * 30 * 24 * 60 * 60 * 1000);
+                    this.data.graduationDate = grad.toISOString();
+                }
+                if (!this.data.milestoneShown) {
+                    this.data.milestoneShown = { day60: false, day90: false, day180: false, gradPrep: false };
+                }
+                if (!this.data.operatorEmail) this.data.operatorEmail = 'youshow82@gmail.com';
+                if (this.data.buddyName === undefined) this.data.buddyName = null;
+                // v1.7a: コミュニティ機能の新フィールド
+                if (!this.data.communityName) this.data.communityName = this.data.userName || '';
+                if (!this.data.sessionMinutes) this.data.sessionMinutes = 60;
+                if (!this.data.attendanceCache) this.data.attendanceCache = null;
+                // v1.8: attendanceCsvUrl はバックエンド定数化したのでユーザーデータから削除
+                if (this.data.attendanceCsvUrl !== undefined) delete this.data.attendanceCsvUrl;
+            },
+
+            saveData() {
+                localStorage.setItem('asakatsuAppData', JSON.stringify(this.data));
+            },
+
+            // ============ UI操作 ============
+            showScreen(screenId) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(screenId).classList.add('active');
+                window.scrollTo(0, 0);
+            },
+
+            showOnboardingStep(step) {
+                this.showScreen(`onboardingScreen`);
+                if (step === 1) {
+                    this.showScreen('onboardingStep1Screen');
+                }
+            },
+
+            selectedPeriod: null,
+
+            selectPeriod(months) {
+                this.selectedPeriod = months;
+                this.data.periodMonths = months;
+                document.querySelectorAll('#period3Btn, #period6Btn, #period12Btn').forEach(btn => {
+                    btn.style.opacity = '0.6';
+                });
+                document.getElementById(`period${months}Btn`).style.opacity = '1';
+                document.getElementById(`period${months}Btn`).style.borderWidth = '2px';
+                document.getElementById('periodNextBtn').disabled = false;
+                document.getElementById('periodNextBtn').style.opacity = '1';
+                document.getElementById('periodNextBtn').style.cursor = 'pointer';
+            },
+
+            nextOnboardingStep(currentStep) {
+                if (currentStep === 1) {
+                    const name = document.getElementById('nameInput').value;
+                    if (!name) {
+                        alert('お名前を入力してください');
+                        return;
+                    }
+                    this.data.userName = name;
+                    this.showScreen('onboardingStep2Screen');
+                } else if (currentStep === 2) {
+                    const identity = document.getElementById('identityInput').value;
+                    const trueGoal = document.getElementById('trueGoalInput').value;
+                    const why = document.getElementById('whyInput').value;
+                    if (!identity || !trueGoal || !why) {
+                        alert('すべて入力してください');
+                        return;
+                    }
+                    this.data.identityStatement = identity;
+                    this.data.identityStatementHistory = [{
+                        date: new Date().toISOString(),
+                        statement: identity
+                    }];
+                    this.data.trueGoal = trueGoal;
+                    this.data.why = why;
+                    this.showScreen('onboardingStep3Screen');
+                } else if (currentStep === 3) {
+                    const title = document.getElementById('goalTitleInput').value;
+                    const ifThen = document.getElementById('ifThenInput').value;
+                    const difficulty = document.getElementById('difficultyInput').value;
+                    if (!title || !ifThen) {
+                        alert('すべて入力してください');
+                        return;
+                    }
+                    this.data.goals = [{
+                        id: Date.now(),
+                        title: title,
+                        ifThen: ifThen,
+                        difficulty: parseInt(difficulty),
+                        createdAt: new Date().toISOString()
+                    }];
+                    this.showScreen('onboardingStep4Screen');
+                } else if (currentStep === 4) {
+                    if (this.selectedPeriod === null) {
+                        // 無期限の場合
+                        const customLabel = document.getElementById('customPeriodLabel').value.trim();
+                        if (!customLabel) {
+                            alert('期間ラベルを入力してください');
+                            return;
+                        }
+                        this.data.periodLabel = customLabel;
+                        this.data.periodMonths = null;
+                        this.data.graduationDate = null;
+                    } else if (!this.selectedPeriod) {
+                        alert('期間を選択してください');
+                        return;
+                    } else {
+                        const start = new Date();
+                        this.data.startDate = start.toISOString();
+                        const grad = new Date(start.getTime() + this.selectedPeriod * 30 * 24 * 60 * 60 * 1000);
+                        this.data.graduationDate = grad.toISOString();
+                    }
+                    const start = new Date();
+                    this.data.startDate = start.toISOString();
+                    this.showScreen('onboardingStep5Screen');
+                    this.updateOnboardingCompletion();
+                }
+            },
+
+            updateOnboardingCompletion() {
+                const periodLabel = this.data.periodLabel || '6ヶ月';
+                const msg = `あなたは『私は${periodLabel}の朝活を通して、${this.data.identityStatement}』として歩み始めますね。`;
+                document.getElementById('onboardingCompletionMessage').innerHTML = msg;
+            },
+
+            completeOnboarding() {
+                this.saveData();
+                this.showScreen('homeScreen');
+                this.checkMilestones();
+                this.updateHome();
+            },
+
+            // ============ フェーズ判定 ============
+            getPhase() {
+                if (!this.data.startDate) return 1;
+                const start = new Date(this.data.startDate);
+                const now = new Date();
+                const daysSinceStart = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+                if (daysSinceStart <= 30) return 1;
+                if (daysSinceStart <= 90) return 2;
+                return 3;
+            },
+
+            getDaysSinceStart() {
+                if (!this.data.startDate) return 0;
+                const start = new Date(this.data.startDate);
+                const now = new Date();
+                return Math.floor((now - start) / (1000 * 60 * 60 * 24));
+            },
+
+            checkMilestones() {
+                if (this.data.graduated) return;
+                const daysSince = this.getDaysSinceStart();
+                const now = new Date();
+
+                // 60日目セレモニー
+                if (daysSince === 60 && !this.data.milestoneShown.day60) {
+                    this.data.milestoneShown.day60 = true;
+                    this.showMilestoneModal(60);
+                    this.saveData();
+                }
+                // 90日目セレモニー
+                else if (daysSince === 90 && !this.data.milestoneShown.day90) {
+                    this.data.milestoneShown.day90 = true;
+                    this.showMilestoneModal(90);
+                    this.saveData();
+                }
+                // 180日目セレモニー
+                else if (daysSince === 180 && !this.data.milestoneShown.day180) {
+                    this.data.milestoneShown.day180 = true;
+                    this.showMilestoneModal(180);
+                    this.saveData();
+                }
+                // 卒業予定日30日前のセレモニーはv2以降に持ち越し
+            },
+
+            showMilestoneModal(day) {
+                const overlay = document.createElement('div');
+                overlay.className = 'modal-overlay active';
+                let html = '';
+                if (day === 60) {
+                    html = `
+                        <div class="modal" style="text-align: center;">
+                            <div style="font-size: 60px; margin-bottom: 16px;">🎉</div>
+                            <div style="font-size: 20px; font-weight: 600; color: #333; margin-bottom: 12px;">ここから第2章ですね</div>
+                            <p style="color: #666; font-size: 14px; margin-bottom: 12px;">あなたは2ヶ月続けました。ここからは『慣れ』を超えて、『あなたの変化』に意識を向ける時期です。</p>
+                            <button class="btn-primary" onclick="app.downloadMilestoneImage(60)" style="width: 100%; margin: 8px 0;">シェア画像をつくる</button>
+                            <button class="btn-secondary" onclick="this.parentElement.parentElement.remove()" style="width: 100%;">ホームに戻る</button>
+                        </div>
+                    `;
+                } else if (day === 90) {
+                    html = `
+                        <div class="modal" style="text-align: center;">
+                            <div style="font-size: 60px; margin-bottom: 16px;">🎊</div>
+                            <div style="font-size: 20px; font-weight: 600; color: #333; margin-bottom: 12px;">3ヶ月の節目です</div>
+                            <p style="color: #666; font-size: 14px; margin-bottom: 12px;">目的を問い直す時間です。『私は${this.data.periodLabel || '6ヶ月'}の朝活を通して、${this.data.identityStatement}』というあなたの宣言は、今も変わりませんか？</p>
+                            <button class="btn-primary" onclick="app.editIdentityAtMilestone()" style="width: 100%; margin: 8px 0;">現在の宣言を見直す</button>
+                            <button class="btn-secondary" onclick="this.parentElement.parentElement.remove()" style="width: 100%;">ホームに戻る</button>
+                        </div>
+                    `;
+                } else if (day === 180) {
+                    html = `
+                        <div class="modal" style="text-align: center;">
+                            <div style="font-size: 60px; margin-bottom: 16px;">🌟</div>
+                            <div style="font-size: 20px; font-weight: 600; color: #333; margin-bottom: 12px;">半年の節目です</div>
+                            <p style="color: #666; font-size: 14px; margin-bottom: 12px;">ここまで続けてきたあなたの朝の積み上げは、しっかりと根付いています。</p>
+                            <button class="btn-primary" onclick="this.parentElement.parentElement.remove(); app.goHome();" style="width: 100%; margin: 8px 0;">ホームに戻る</button>
+                        </div>
+                    `;
+                }
+                overlay.innerHTML = html;
+                document.body.appendChild(overlay);
+            },
+
+            editIdentityAtMilestone() {
+                const newStatement = prompt('現在のアイデンティティ宣言を入力してください：', this.data.identityStatement);
+                if (newStatement && newStatement.trim()) {
+                    this.data.identityStatementHistory.push({
+                        date: new Date().toISOString(),
+                        statement: newStatement
+                    });
+                    this.data.identityStatement = newStatement;
+                    this.saveData();
+                    alert('アイデンティティ宣言を更新しました。次の90日へ向けて、頑張ってください。');
+                    document.querySelector('.modal-overlay').remove();
+                }
+            },
+
+            showGraduationPrepModal() {
+                const overlay = document.createElement('div');
+                overlay.className = 'modal-overlay active';
+                const grad = new Date(this.data.graduationDate);
+                const daysLeft = Math.ceil((grad - new Date()) / (1000 * 60 * 60 * 24));
+                overlay.innerHTML = `
+                    <div class="modal" style="text-align: center;">
+                        <div style="font-size: 50px; margin-bottom: 16px;">⏰</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 12px;">あと${daysLeft}日で卒業の節目です</div>
+                        <p style="color: #666; font-size: 14px; margin-bottom: 16px;">朝活を卒業するか、もう少し続けるか選択できます。</p>
+                        <button class="btn-primary" onclick="app.openGraduationChoiceModal(); this.parentElement.parentElement.remove();" style="width: 100%;">選択する</button>
+                        <button class="btn-secondary" onclick="this.parentElement.parentElement.remove()" style="width: 100%; margin-top: 8px;">後で決める</button>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+            },
+
+            openGraduationChoiceModal() {
+                const overlay = document.createElement('div');
+                overlay.className = 'modal-overlay active';
+                overlay.innerHTML = `
+                    <div class="modal" style="text-align: center;">
+                        <div style="font-size: 40px; margin-bottom: 16px;">🎓</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 16px;">卒業について選択してください</div>
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 8px;">
+                            <button class="btn-primary" onclick="app.handleGraduationChoice('graduate'); this.parentElement.parentElement.parentElement.remove();" style="width: 100%; padding: 12px;">
+                                卒業する
+                            </button>
+                            <button class="btn-secondary" onclick="app.handleGraduationChoice('extend'); this.parentElement.parentElement.parentElement.remove();" style="width: 100%; padding: 12px;">
+                                もう少し続ける
+                            </button>
+                            <button class="btn-secondary" onclick="app.handleGraduationChoice('alumni'); this.parentElement.parentElement.parentElement.remove();" style="width: 100%; padding: 12px;">
+                                アルムナイになる
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+            },
+
+            handleGraduationChoice(choice) {
+                let notificationSubject = '';
+                let notificationBody = '';
+                if (choice === 'graduate') {
+                    notificationSubject = `朝活の卒業のお知らせ（${this.data.userName}より）`;
+                    notificationBody = `遊正さん\n\n朝活の卒業を選択しました。\n\n私のアイデンティティ宣言：\n「${this.data.identityStatement}」\n\nこれまで本当にありがとうございました。\n${this.data.userName}`;
+                } else if (choice === 'extend') {
+                    notificationSubject = `朝活を継続します（${this.data.userName}より）`;
+                    notificationBody = `遊正さん\n\n朝活をもう少し続けることにしました。\n\n私のアイデンティティ宣言：\n「${this.data.identityStatement}」\n\nよろしくお願いします。\n${this.data.userName}`;
+                } else if (choice === 'alumni') {
+                    notificationSubject = `朝活をアルムナイとして継続します（${this.data.userName}より）`;
+                    notificationBody = `遊正さん\n\nアルムナイとして朝活コミュニティに関わり続けることにしました。\n\n私のアイデンティティ宣言：\n「${this.data.identityStatement}」\n\nこれからもよろしくお願いします。\n${this.data.userName}`;
+                }
+                const mailtoUrl = `mailto:${this.data.operatorEmail}?subject=${encodeURIComponent(notificationSubject)}&body=${encodeURIComponent(notificationBody)}`;
+                const prompt = confirm(`運営者に以下の内容で通知します。よろしいですか？\n\n件名：${notificationSubject}\n\nメールクライアントが開きます。`);
+                if (prompt) {
+                    window.location.href = mailtoUrl;
+                }
+            },
+
+            downloadMilestoneImage(day) {
+                alert('マイルストーン記念画像が生成されます。後の実装で対応予定です。');
+            },
+
+            // ============ ホーム画面 ============
+            goHome() {
+                this.showScreen('homeScreen');
+                this.updateHome();
+                this.updateNavigation('home');
+            },
+
+            updateHome() {
+                this.updateGreeting();
+                this.updateIdentityCard();
+                this.updateAccumulationCard();
+                this.updatePhaseInfo();
+                this.checkBuddyCard();
+                // this.checkGraduationPrepCard(); // v2以降で復活予定
+                this.updateProgressBadge();
+                this.updateRecordStrip();
+                this.updateCompassionCard();
+            },
+
+            checkBuddyCard() {
+                const today = new Date();
+                const isFriday = today.getDay() === 5;
+                const buddyCard = document.getElementById('buddyCard');
+                if (!buddyCard) {
+                    if (isFriday && this.data.buddyName) {
+                        const card = document.createElement('div');
+                        card.id = 'buddyCard';
+                        card.className = 'card';
+                        card.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="font-size: 20px;">💌</div>
+                                <div style="flex: 1;">
+                                    <div style="font-size: 14px; font-weight: 600; color: #333;">今週の${this.data.buddyName}さんへの一言は？</div>
+                                    <div style="font-size: 12px; color: #999; margin-top: 2px;">バディとの絆を深める</div>
+                                </div>
+                                <button onclick="app.openBuddyMessageModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">→</button>
+                            </div>
+                        `;
+                        const homeScreen = document.getElementById('homeScreen');
+                        const compassionCard = document.getElementById('compassionCard');
+                        if (compassionCard) {
+                            compassionCard.parentNode.insertBefore(card, compassionCard.nextSibling);
+                        }
+                    }
+                } else if (!isFriday || !this.data.buddyName) {
+                    buddyCard.remove();
+                }
+            },
+
+            openBuddyMessageModal() {
+                const message = prompt(`${this.data.buddyName}さんへのメッセージを書いてください（任意）：`);
+                if (message !== null) {
+                    if (message.trim()) {
+                        const text = `💌 ${this.data.buddyName}さんへ\n\n${message}\n\n（${this.data.userName}より）`;
+                        navigator.clipboard.writeText(text).then(() => {
+                            alert('メッセージをコピーしました。Zoomチャットなどに貼り付けられます。');
+                        }).catch(() => {
+                            prompt('メッセージをコピーしてください：', text);
+                        });
+                    }
+                }
+            },
+
+            checkGraduationPrepCard() {
+                const grad = this.data.graduationDate ? new Date(this.data.graduationDate) : null;
+                const now = new Date();
+                const daysLeft = grad ? Math.ceil((grad - now) / (1000 * 60 * 60 * 24)) : null;
+                const gradCard = document.getElementById('graduationPrepCard');
+
+                if (daysLeft !== null && daysLeft > 0 && daysLeft <= 30 && !this.data.graduated) {
+                    if (!gradCard) {
+                        const card = document.createElement('div');
+                        card.id = 'graduationPrepCard';
+                        card.className = 'card';
+                        card.style.background = 'linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%)';
+                        card.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="font-size: 24px;">🎓</div>
+                                <div style="flex: 1;">
+                                    <div style="font-size: 14px; font-weight: 600; color: #00838f;">あと${daysLeft}日で卒業の節目です</div>
+                                    <div style="font-size: 12px; color: #999; margin-top: 2px;">卒業するか、続けるか選択できます</div>
+                                </div>
+                                <button onclick="app.openGraduationChoiceModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #00838f;">→</button>
+                            </div>
+                        `;
+                        const homeScreen = document.getElementById('homeScreen');
+                        const progressCard = document.querySelector('.card:has(#progressLabel)');
+                        if (progressCard) {
+                            progressCard.parentNode.insertBefore(card, progressCard.nextSibling);
+                        }
+                    }
+                } else if (gradCard) {
+                    gradCard.remove();
+                }
+            },
+
+            updateIdentityCard() {
+                const identity = this.data.identityStatement || '';
+                const periodLabel = this.data.periodLabel || '6ヶ月';
+                document.getElementById('homeIdentityStatement').textContent = identity;
+                document.getElementById('homeIdentityPeriod').textContent = periodLabel;
+            },
+
+            async updateAccumulationCard() {
+                const card = document.getElementById('accumulationCard');
+                if (!card) return;
+
+                const hasCommunityName = this.data.communityName && this.data.communityName.trim();
+
+                if (!hasCommunityName) {
+                    // Slack名未設定時のメッセージ
+                    card.innerHTML = `
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <div style="font-size: 28px; flex-shrink: 0;">💎</div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 6px;">あなたの積み上げを見える化する</div>
+                                <div style="font-size: 12px; color: #666; line-height: 1.5; margin-bottom: 10px;">
+                                    設定画面で「コミュニティ参加名（Slack名）」を入れると、コミュニティでの参加実績が積み上がりとして見えるようになります。
+                                </div>
+                                <button class="btn-small btn-primary" onclick="app.goToSettings()" style="font-size: 12px; padding: 8px 14px;">設定する</button>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // データ取得中のプレースホルダー
+                card.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 12px; color: #999;">
+                        <div style="font-size: 28px;">💎</div>
+                        <div style="font-size: 13px;">データを読み込み中...</div>
+                    </div>
+                `;
+
+                const data = await this.fetchAttendanceData();
+                if (!data) {
+                    // エラー時のメッセージ
+                    const lastFetch = this.data.attendanceCache?.fetchedAt
+                        ? new Date(this.data.attendanceCache.fetchedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
+                        : '未取得';
+                    const errDetail = this.lastAttendanceError ? `<div style="font-size: 10px; color: #b00; margin-bottom: 8px; word-break: break-all; background: #fff5f5; padding: 6px; border-radius: 4px;">エラー詳細: ${this.lastAttendanceError}</div>` : '';
+                    card.innerHTML = `
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <div style="font-size: 28px; flex-shrink: 0;">💎</div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 6px;">データが取得できませんでした</div>
+                                <div style="font-size: 12px; color: #666; line-height: 1.5; margin-bottom: 10px;">
+                                    少し待ってからもう一度お試しください。
+                                </div>
+                                ${errDetail}
+                                <div style="font-size: 11px; color: #999; margin-bottom: 10px;">最終更新: ${lastFetch}</div>
+                                <button class="btn-small btn-primary" onclick="app.retryAccumulationCard()" style="font-size: 12px; padding: 8px 14px;">もう一度</button>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // 成功時のカード表示
+                const identity = this.data.identityStatement || '自分の理想';
+                const periodLabel = this.data.periodLabel || '6ヶ月';
+                const timeStr = this.formatAccumulatedTime(data.accumulatedMinutes);
+                const lastDateStr = data.lastDate
+                    ? new Date(data.lastDate + 'T00:00:00').toLocaleDateString('ja-JP', { month: '2-digit', day: '2-digit' })
+                    : '未取得';
+                const lastFetch = this.data.attendanceCache?.fetchedAt
+                    ? new Date(this.data.attendanceCache.fetchedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
+                    : '未取得';
+
+                card.innerHTML = `
+                    <div style="position: relative;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="font-size: 24px;">💎</div>
+                                <div style="font-size: 14px; font-weight: 600; color: #00838f;">あなたが「私は${periodLabel}の朝活を通して、${identity}」に向けて積み上げてきた時間</div>
+                            </div>
+                            <button onclick="app.retryAccumulationCard()" style="background: none; border: none; font-size: 16px; cursor: pointer; color: #999; padding: 4px; opacity: 0.7; transition: opacity 0.2s;" title="更新する">↻</button>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%); padding: 16px; border-radius: 10px; margin-bottom: 8px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 32px; font-weight: 700; color: #00838f; line-height: 1;">${timeStr}</div>
+                                <div style="font-size: 12px; color: #00838f; margin-top: 6px;">これまでの積み上げです</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: #999; text-align: center; margin-top: 8px;">
+                            ${data.total}回 / 今月${data.thisMonth}回 / 直近 ${lastDateStr}
+                        </div>
+                        <div style="font-size: 11px; color: #ccc; text-align: right; margin-top: 6px;">最終更新: ${lastFetch}</div>
+                    </div>
+                `;
+            },
+
+            retryAccumulationCard() {
+                this.updateAccumulationCard();
+            },
+
+            updatePhaseInfo() {
+                const phase = this.getPhase();
+                const daysSince = this.getDaysSinceStart();
+                const phaseLabels = {
+                    1: 'Phase 1（〜30日目）：コミュニティに慣れる時期',
+                    2: 'Phase 2（31〜90日目）：あなたの変化に気づく時期',
+                    3: 'Phase 3（91日〜）：成長を言語化する時期'
+                };
+                document.getElementById('phaseInfo').textContent = phaseLabels[phase] + ` | 入会${daysSince}日目`;
+            },
+
+            openIdentityEditModal() {
+                                const newStatement = prompt('アイデンティティ宣言の「___」部分を入力してください（「私は◯ヶ月の朝活を通して、」の後）：', this.data.identityStatement);
+                if (newStatement && newStatement.trim()) {
+                    this.data.identityStatementHistory.push({
+                        date: new Date().toISOString(),
+                        statement: newStatement
+                    });
+                    this.data.identityStatement = newStatement;
+                    this.saveData();
+                    this.updateIdentityCard();
+                }
+            },
+
+            updateGreeting() {
+                const hour = new Date().getHours();
+                let greeting = '';
+                if (hour < 9) {
+                    greeting = `☀️ おはようございます、${this.data.userName}さん`;
+                } else if (hour < 12) {
+                    greeting = `🌅 おはようございます、${this.data.userName}さん`;
+                } else if (hour < 18) {
+                    greeting = `🌤️ こんにちは、${this.data.userName}さん`;
+                } else {
+                    greeting = `🌙 こんばんは、${this.data.userName}さん`;
+                }
+                const greetingEl = document.getElementById('greetingMessage');
+                if (greetingEl) greetingEl.innerHTML = greeting;
+                const checkinEl = document.getElementById('checkinGreeting');
+                if (checkinEl) checkinEl.innerHTML = greeting;
+            },
+
+            updateCurrentDate() {
+                const today = new Date();
+                const options = { weekday: 'long', month: 'long', day: 'numeric' };
+                const dateStr = today.toLocaleDateString('ja-JP', options);
+                document.getElementById('currentDateDisplay').textContent = dateStr;
+            },
+
+            updateProgressBadge() {
+                const checkins = this.data.checkins.filter(c => {
+                    const date = new Date(c.date);
+                    const weekAgo = new Date();
+                    weekAgo.setDate(weekAgo.getDate() - 7);
+                    return date >= weekAgo;
+                }).length;
+
+                const stages = [
+                    { emoji: '🌱', label: '新芽（今週0-1回）', min: 0, max: 1 },
+                    { emoji: '🌿', label: '若草（今週2-3回）', min: 2, max: 3 },
+                    { emoji: '🪴', label: '鉢植え（今週4回）', min: 4, max: 4 },
+                    { emoji: '🌳', label: '若木（今週5回以上）', min: 5, max: Infinity }
+                ];
+
+                const stage = stages.find(s => checkins >= s.min && checkins <= s.max);
+                document.getElementById('growthEmoji').textContent = stage.emoji;
+                document.getElementById('growthStage').textContent = stage.label;
+                document.getElementById('progressLabel').textContent = `今週の参加: ${checkins}回`;
+            },
+
+            updateRecordStrip() {
+                const strip = document.getElementById('recordStrip');
+                strip.innerHTML = '';
+                const today = new Date();
+                const todayStr = today.toISOString().split('T')[0];
+                for (let i = 13; i >= 0; i--) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    const checkin = this.data.checkins.find(c => c.date === dateStr);
+                    const dayLabel = date.toLocaleDateString('ja-JP', { month: '2-digit', day: '2-digit' });
+                    const isToday = dateStr === todayStr;
+
+                    const dayEl = document.createElement('div');
+                    dayEl.className = 'record-day' + (checkin ? ' done' : ' rest') + (isToday ? ' today' : '');
+                    dayEl.innerHTML = `
+                        <div class="record-day-status">${checkin ? '✅' : (isToday ? '◯' : '・')}</div>
+                        <div class="record-day-label">${dayLabel}</div>
+                    `;
+                    strip.appendChild(dayEl);
+                }
+                // 今日（最右端）が最初から見えるよう、レンダー直後にスクロール位置を右端へ
+                requestAnimationFrame(() => {
+                    strip.scrollLeft = strip.scrollWidth;
+                });
+            },
+
+            // 今のあなたへ：状況に応じたセルフコンパッション + アイデンティティ・メッセージ
+            async updateCompassionCard() {
+                const messageEl = document.getElementById('compassionMessage');
+                if (!messageEl) return;
+
+                const totalCheckins = this.data.checkins.length;
+                const today = new Date();
+                const todayStr = today.toISOString().split('T')[0];
+                const checkedInToday = this.data.checkins.some(c => c.date === todayStr);
+
+                // 直近のチェックインまでの日数を計算
+                let daysSinceLast = null;
+                if (this.data.checkins.length > 0) {
+                    const lastDate = this.data.checkins
+                        .map(c => c.date)
+                        .sort()
+                        .reverse()[0];
+                    const diff = Math.floor((today - new Date(lastDate)) / (1000 * 60 * 60 * 24));
+                    daysSinceLast = diff;
+                }
+
+                const identity = this.data.identityStatement || '';
+                const userName = this.data.userName || 'あなた';
+                const phase = this.getPhase();
+
+                let message = '';
+                if (totalCheckins === 0) {
+                    message = `${userName}さん、ようこそ。<br>朝活は「続けること」が目的ではなく、<br>あなたが${identity ? `「${identity}」` : '自分の理想'}に近づくための時間です。<br>気が向いた朝に、ひとつだけチェックインしてみてください。`;
+                } else if (checkedInToday) {
+                    if (phase === 1) {
+                        message = `今朝起きられただけで十分です。<br>${identity ? `「${identity}」に向かって、また一歩。` : ''}<br>これまで <strong>${totalCheckins}回</strong> 朝の時間を自分のために使えています。`;
+                    } else {
+                        message = `今朝、ひとつ進みましたね。<br>${identity ? `「${identity}」に、また一歩近づきました。` : ''}<br>これまで合計 <strong>${totalCheckins}回</strong> 朝の時間をあなた自身のために使えています。`;
+                    }
+                } else if (daysSinceLast !== null && daysSinceLast >= 3) {
+                    // 3日以上空いている場合：コミュニティデータも合わせて、明るく迎える
+                    let communityMessage = '';
+                    if (this.data.communityName) {
+                        const data = await this.fetchAttendanceData();
+                        if (data) {
+                            const hours = Math.floor(data.accumulatedMinutes / 60);
+                            communityMessage = `<br>これまで <strong>${data.total}回</strong> / 約<strong>${hours}時間</strong>、コミュニティの仲間と朝の時間を積み上げてきました。`;
+                        } else {
+                            communityMessage = `<br>これまで <strong>${totalCheckins}回</strong> 朝の時間を自分のために使ってきました。`;
+                        }
+                    } else {
+                        communityMessage = `<br>これまで <strong>${totalCheckins}回</strong> 朝の時間を自分のために使ってきました。`;
+                    }
+                    message = `戻ってきて嬉しいです😆${communityMessage}<br>また今日からコツコツ積み上げていきましょ〜`;
+                } else if (daysSinceLast !== null && daysSinceLast >= 1) {
+                    message = `おかえりなさい😊<br>朝活は毎日でなくてOK。<br>あなたのペースで、今日も一歩いきましょう〜`;
+                } else {
+                    message = `${userName}さん、おはようございます。<br>${identity ? `「${identity}」 ─── ` : ''}今朝のあなたを、また一歩進めましょう。`;
+                }
+
+                messageEl.innerHTML = message;
+            },
+
+            // シェア機能
+            openShareModal() {
+                document.getElementById('shareModal').classList.add('active');
+                this.drawShareCanvas();
+            },
+
+            closeShareModal() {
+                document.getElementById('shareModal').classList.remove('active');
+            },
+
+            drawShareCanvas() {
+                const canvas = document.getElementById('shareCanvas');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                const W = canvas.width;
+                const H = canvas.height;
+
+                // 背景：朝の光のグラデーション
+                const grad = ctx.createLinearGradient(0, 0, 0, H);
+                grad.addColorStop(0, '#e0f7fa');
+                grad.addColorStop(0.6, '#b2ebf2');
+                grad.addColorStop(1, '#80deea');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, W, H);
+
+                // 装飾的な太陽
+                ctx.beginPath();
+                ctx.arc(W - 100, 110, 60, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(26, 188, 204, 0.4)';
+                ctx.fill();
+
+                // タイトル
+                ctx.fillStyle = '#004d5c';
+                ctx.font = 'bold 36px "Noto Sans JP", sans-serif';
+                ctx.fillText('🌅 朝活の記録', 50, 100);
+
+                // ユーザー名
+                ctx.fillStyle = '#00686d';
+                ctx.font = '500 28px "Noto Sans JP", sans-serif';
+                ctx.fillText(`${this.data.userName || 'あなた'}さん`, 50, 160);
+
+                // アイデンティティ
+                if (this.data.identityStatement) {
+                    ctx.fillStyle = '#00838f';
+                    ctx.font = '400 16px "Noto Sans JP", sans-serif';
+                    const periodLabel = this.data.periodLabel || '6ヶ月';
+                    const headerText = `私は${periodLabel}の朝活を通して、`;
+                    this.wrapText(ctx, headerText, 50, 200, W - 100, 28);
+                    ctx.font = '400 22px "Noto Sans JP", sans-serif';
+                    const text = `${this.data.identityStatement}`;
+                    this.wrapText(ctx, text, 50, 240, W - 100, 32);
+                }
+
+                // 仕切り線
+                ctx.strokeStyle = 'rgba(180, 100, 60, 0.3)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(50, 320);
+                ctx.lineTo(W - 50, 320);
+                ctx.stroke();
+
+                // 統計
+                const totalCheckins = this.data.checkins.length;
+                const startDate = this.data.startDate ? new Date(this.data.startDate) : new Date();
+                const days = Math.floor((new Date() - startDate) / (1000 * 60 * 60 * 24)) + 1;
+
+                ctx.fillStyle = '#004d5c';
+                ctx.font = '700 56px "Noto Sans JP", sans-serif';
+                ctx.fillText(`${totalCheckins}`, 60, 410);
+                ctx.font = '400 18px "Noto Sans JP", sans-serif';
+                ctx.fillStyle = '#00686d';
+                ctx.fillText('回 朝活した', 60, 440);
+
+                ctx.fillStyle = '#004d5c';
+                ctx.font = '700 56px "Noto Sans JP", sans-serif';
+                ctx.fillText(`${days}`, 320, 410);
+                ctx.font = '400 18px "Noto Sans JP", sans-serif';
+                ctx.fillStyle = '#00686d';
+                ctx.fillText('日 続いている', 320, 440);
+
+                // 成長ツリー
+                const stages = [
+                    { emoji: '🌱', label: '芽吹いた' },
+                    { emoji: '🌿', label: '育っている' },
+                    { emoji: '🪴', label: '根付いた' },
+                    { emoji: '🌳', label: '若木に' }
+                ];
+                const recent = this.data.checkins.filter(c => {
+                    const d = new Date(c.date);
+                    const w = new Date();
+                    w.setDate(w.getDate() - 7);
+                    return d >= w;
+                }).length;
+                let stageIdx = 0;
+                if (recent >= 5) stageIdx = 3;
+                else if (recent >= 4) stageIdx = 2;
+                else if (recent >= 2) stageIdx = 1;
+
+                ctx.font = '120px sans-serif';
+                ctx.fillText(stages[stageIdx].emoji, W / 2 - 60, 600);
+                ctx.fillStyle = '#004d5c';
+                ctx.font = '500 22px "Noto Sans JP", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(stages[stageIdx].label, W / 2, 650);
+                ctx.textAlign = 'left';
+
+                // フッター
+                ctx.fillStyle = '#0097a7';
+                ctx.font = '400 16px "Noto Sans JP", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('朝活コミュニティ - 自分のペースで、自分の理想に近づく', W / 2, 750);
+                ctx.textAlign = 'left';
+            },
+
+            wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+                // 日本語は文字単位、英語は単語単位で改行
+                const chars = text.split('');
+                let line = '';
+                for (let n = 0; n < chars.length; n++) {
+                    const testLine = line + chars[n];
+                    const metrics = ctx.measureText(testLine);
+                    if (metrics.width > maxWidth && n > 0) {
+                        ctx.fillText(line, x, y);
+                        line = chars[n];
+                        y += lineHeight;
+                    } else {
+                        line = testLine;
+                    }
+                }
+                ctx.fillText(line, x, y);
+            },
+
+            downloadShareImage() {
+                const canvas = document.getElementById('shareCanvas');
+                if (!canvas) return;
+                const link = document.createElement('a');
+                link.download = `asakatsu-${new Date().toISOString().split('T')[0]}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            },
+
+            copyShareText() {
+                const totalCheckins = this.data.checkins.length;
+                const startDate = this.data.startDate ? new Date(this.data.startDate) : new Date();
+                const days = Math.floor((new Date() - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                const identity = this.data.identityStatement || '';
+                const text = `🌅 朝活の記録 / ${this.data.userName || 'わたし'}\n` +
+                    (identity ? `${identity}\n` : '') +
+                    `\n${totalCheckins}回の朝活、${days}日継続\n` +
+                    `自分のペースで、自分の理想に近づいています。`;
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('テキストをコピーしました。Zoomチャットに貼り付けられます。');
+                }).catch(() => {
+                    prompt('テキストをコピーしてください：', text);
+                });
+            },
+
+            // ============ チェックイン ============
+            goToCheckin() {
+                this.showScreen('checkinScreen');
+                this.renderThemeSelector();
+                this.renderCheckinUI();
+                this.updateNavigation('checkin');
+            },
+
+            renderCheckinUI() {
+                const phase = this.getPhase();
+                const learningInput = document.querySelector('.learning-input');
+                const alignmentInput = document.getElementById('alignmentQuestion');
+
+                // Phase 1: 学びメモを非表示
+                if (phase === 1) {
+                    learningInput.style.display = 'none';
+                    if (alignmentInput) alignmentInput.style.display = 'none';
+                } else {
+                    learningInput.style.display = 'block';
+                    if (alignmentInput && phase >= 2) {
+                        alignmentInput.style.display = 'block';
+                    } else if (alignmentInput) {
+                        alignmentInput.style.display = 'none';
+                    }
+                }
+            },
+
+            renderThemeSelector() {
+                const selector = document.getElementById('themeSelector');
+                selector.innerHTML = '';
+                this.themes.forEach(theme => {
+                    const btn = document.createElement('button');
+                    btn.className = 'theme-button';
+                    btn.dataset.themeId = theme.id;
+                    btn.innerHTML = `
+                        <div class="theme-icon">${theme.icon}</div>
+                        <div>${theme.label}</div>
+                    `;
+                    btn.onclick = () => {
+                        document.querySelectorAll('.theme-button').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                    };
+                    selector.appendChild(btn);
+                });
+
+                // アラインメントボタンの初期化
+                const alignBtns = document.querySelectorAll('.alignment-btn');
+                alignBtns.forEach(btn => {
+                    btn.onclick = () => {
+                        alignBtns.forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                    };
+                });
+            },
+
+            submitCheckin() {
+                const selectedTheme = document.querySelector('.theme-button.selected');
+                if (!selectedTheme) {
+                    alert('テーマを選択してください');
+                    return;
+                }
+                const learning = document.getElementById('learningInput').value || '';
+                const alignment = document.querySelector('.alignment-btn.selected')?.dataset.alignment || null;
+                const today = new Date().toISOString().split('T')[0];
+
+                this.data.checkins.push({
+                    date: today,
+                    theme: selectedTheme.dataset.themeId,
+                    learning: learning,
+                    alignment: alignment,
+                    timestamp: new Date().toISOString()
+                });
+
+                this.saveData();
+
+                // Phase 3で「離れている」を選んだ場合のメッセージ
+                if (alignment === 'away') {
+                    const overlay = document.createElement('div');
+                    overlay.className = 'modal-overlay active';
+                    overlay.innerHTML = `
+                        <div class="modal" style="text-align: center;">
+                            <div style="font-size: 50px; margin-bottom: 16px;">🤔</div>
+                            <div style="font-size: 16px; font-weight: 600; color: #333; margin-bottom: 12px;">立ち止まって考える時間</div>
+                            <p style="color: #666; font-size: 14px; line-height: 1.6;">今の目標が、あなたの本当の願いから遠ざかっているんですね。<br>それは大切なシグナルです。次の振り返りで、もう一度深めてみてください。</p>
+                            <button class="btn-primary" onclick="app.goHome(); this.parentElement.parentElement.remove();" style="width: 100%; margin-top: 16px;">ホームへ</button>
+                        </div>
+                    `;
+                    document.body.appendChild(overlay);
+                } else {
+                    this.showSuccessMessage('今日も一歩進んだね！');
+                }
+                setTimeout(() => this.goHome(), 2000);
+            },
+
+            showSuccessMessage(message) {
+                const overlay = document.createElement('div');
+                overlay.className = 'modal-overlay active';
+                overlay.innerHTML = `
+                    <div class="modal" style="text-align: center;">
+                        <div style="font-size: 60px; margin-bottom: 16px;">✨</div>
+                        <div style="font-size: 20px; font-weight: 600; color: #333; margin-bottom: 12px;">${message}</div>
+                        <p style="color: #666; font-size: 14px;">朝活で自分を成長させるあなたに、応援のリアクションが届いています。</p>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+                setTimeout(() => overlay.remove(), 2000);
+            },
+
+            // ============ 振り返り ============
+            goToReflection() {
+                this.showScreen('reflectionScreen');
+                this.renderWoopForm();
+                this.updateNavigation('reflection');
+            },
+
+            renderWoopForm() {
+                const container = document.getElementById('woopContainer');
+                container.innerHTML = '';
+
+                const steps = [
+                    { key: 'wish', title: '今週、何を大切にしたかった？', description: '願いをそのまま書いてください' },
+                    { key: 'outcome', title: '実際には、どうだった？', description: '事実だけ書いて。評価は不要です' },
+                    { key: 'obstacle', title: '何が邪魔をした？', description: '責める必要はありません。観察するだけで十分です' },
+                    { key: 'plan', title: '来週、ひとつだけ工夫するなら？', description: '「もし○○だったら、△△する」という形で書くと続きやすいです' }
+                ];
+
+                steps.forEach((step, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'woop-step';
+                    div.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <div class="woop-step-title">${idx + 1}. ${step.title}</div>
+                            <span style="font-size: 12px; color: #999;">${idx + 1}/4</span>
+                        </div>
+                        <div class="woop-step-description">${step.description}</div>
+                        <textarea id="woop_${step.key}" placeholder="1-3文程度で..." style="min-height: 80px;"></textarea>
+                    `;
+                    container.appendChild(div);
+                });
+            },
+
+            submitReflection() {
+                const wish = document.getElementById('woop_wish').value;
+                const outcome = document.getElementById('woop_outcome').value;
+                const obstacle = document.getElementById('woop_obstacle').value;
+                const plan = document.getElementById('woop_plan').value;
+
+                if (!wish || !outcome || !obstacle || !plan) {
+                    alert('すべてのステップを入力してください');
+                    return;
+                }
+
+                this.data.reflections.push({
+                    date: new Date().toISOString(),
+                    wish, outcome, obstacle, plan
+                });
+
+                this.saveData();
+
+                const overlay = document.createElement('div');
+                overlay.className = 'modal-overlay active';
+                overlay.innerHTML = `
+                    <div class="modal" style="text-align: center;">
+                        <div style="font-size: 50px; margin-bottom: 16px;">✨</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 12px;">あなたの振り返りを保存しました</div>
+                        <p style="color: #666; font-size: 14px; line-height: 1.6;">この4週間の成長のあゆみは、あなたの資産です。<br>「過去の記録」で、いつでも見返すことができます。</p>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+                setTimeout(() => {
+                    overlay.remove();
+                    this.goHome();
+                }, 2500);
+            },
+
+            // ============ 記録 ============
+            goToRecords() {
+                this.showScreen('recordsScreen');
+                this.renderRecords();
+                this.updateNavigation('records');
+            },
+
+            renderRecords() {
+                const list = document.getElementById('recordsList');
+                list.innerHTML = '';
+
+                if (this.data.checkins.length === 0 && this.data.reflections.length === 0) {
+                    list.innerHTML = '<p style="color: #999; text-align: center;">記録はまだありません</p>';
+                    return;
+                }
+
+                // チェックイン記録
+                if (this.data.checkins.length > 0) {
+                    const section = document.createElement('div');
+                    section.innerHTML = '<h3 style="color: #00838f; margin: 16px 0 8px;">📝 チェックイン記録</h3>';
+                    list.appendChild(section);
+
+                    this.data.checkins.slice().reverse().forEach(c => {
+                        const theme = this.themes.find(t => t.id === c.theme);
+                        const date = new Date(c.date).toLocaleDateString('ja-JP');
+                        const item = document.createElement('div');
+                        item.className = 'card';
+                        item.style.marginBottom = '8px';
+                        item.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 600;">${theme.icon} ${theme.label}</div>
+                                    <div style="font-size: 12px; color: #999;">${date}</div>
+                                </div>
+                            </div>
+                            ${c.learning ? `<div style="margin-top: 8px; font-size: 13px; color: #666;">${c.learning}</div>` : ''}
+                        `;
+                        list.appendChild(item);
+                    });
+                }
+
+                // 振り返り記録
+                if (this.data.reflections.length > 0) {
+                    const section = document.createElement('div');
+                    section.innerHTML = '<h3 style="color: #00838f; margin: 20px 0 8px;">💭 振り返り記録</h3>';
+                    list.appendChild(section);
+
+                    this.data.reflections.slice().reverse().forEach(r => {
+                        const date = new Date(r.date).toLocaleDateString('ja-JP');
+                        const item = document.createElement('div');
+                        item.className = 'card';
+                        item.style.marginBottom = '8px';
+                        item.innerHTML = `
+                            <div style="font-size: 12px; color: #999; margin-bottom: 8px;">${date}</div>
+                            <div style="font-size: 13px; line-height: 1.6;">
+                                <div><strong>願い：</strong> ${r.wish}</div>
+                                <div><strong>結果：</strong> ${r.outcome}</div>
+                                <div><strong>課題：</strong> ${r.obstacle}</div>
+                                <div><strong>来週：</strong> ${r.plan}</div>
+                            </div>
+                        `;
+                        list.appendChild(item);
+                    });
+                }
+            },
+
+            // ============ 設定 ============
+            goToSettings() {
+                this.showScreen('settingsScreen');
+                document.getElementById('settingName').textContent = this.data.userName;
+                document.getElementById('settingIdentity').textContent = this.data.identityStatement || '未設定';
+                document.getElementById('settingTrueGoal').textContent = this.data.trueGoal || '未設定';
+                document.getElementById('settingPeriod').textContent = this.data.periodLabel || `${this.data.periodMonths}ヶ月`;
+                document.getElementById('settingOperatorEmail').textContent = this.data.operatorEmail;
+                document.getElementById('settingBuddy').textContent = this.data.buddyName || '未設定';
+                document.getElementById('settingCommunityName').textContent = this.data.communityName || '未設定';
+                document.getElementById('settingSessionMinutes').textContent = `${this.data.sessionMinutes}分`;
+                this.updateNavigation('settings');
+            },
+
+            openSettingsIdentityEdit() {
+                                const newStatement = prompt('アイデンティティ宣言の「___」部分を入力してください（「私は◯ヶ月の朝活を通して、」の後）：', this.data.identityStatement);
+                if (newStatement && newStatement.trim()) {
+                    this.data.identityStatementHistory.push({
+                        date: new Date().toISOString(),
+                        statement: newStatement
+                    });
+                    this.data.identityStatement = newStatement;
+                    this.saveData();
+                    this.goToSettings();
+                }
+            },
+
+            openSettingsTrueGoalEdit() {
+                const newGoal = prompt('本音目標を編集してください：', this.data.trueGoal);
+                if (newGoal !== null) {
+                    this.data.trueGoal = newGoal;
+                    this.saveData();
+                    this.goToSettings();
+                }
+            },
+
+            openSettingsPeriodEdit() {
+                const newPeriod = prompt('期間を選択してください（3/6/12）：', this.data.periodMonths);
+                if (newPeriod && [3, 6, 12].includes(parseInt(newPeriod))) {
+                    this.data.periodMonths = parseInt(newPeriod);
+                    const start = new Date(this.data.startDate);
+                    const grad = new Date(start.getTime() + this.data.periodMonths * 30 * 24 * 60 * 60 * 1000);
+                    this.data.graduationDate = grad.toISOString();
+                    this.saveData();
+                    this.goToSettings();
+                }
+            },
+
+            openSettingsOperatorEmail() {
+                const newEmail = prompt('運営者のメールアドレスを入力してください：', this.data.operatorEmail);
+                if (newEmail && newEmail.trim()) {
+                    this.data.operatorEmail = newEmail;
+                    this.saveData();
+                    this.goToSettings();
+                }
+            },
+
+            openSettingsBuddyEdit() {
+                const newBuddy = prompt('バディの名前を入力してください（任意）：', this.data.buddyName || '');
+                if (newBuddy !== null) {
+                    this.data.buddyName = newBuddy || null;
+                    this.saveData();
+                    this.goToSettings();
+                }
+            },
+
+            openSettingsCommunityNameEdit() {
+                const newName = prompt('コミュニティ参加名を入力してください（出席フォームで使う名前）：', this.data.communityName || this.data.userName || '');
+                if (newName !== null) {
+                    this.data.communityName = newName || '';
+                    this.saveData();
+                    this.updateHome();
+                    this.goToSettings();
+                }
+            },
+
+            openSettingsSessionMinutes() {
+                const newMinutes = prompt('1回の朝活時間（分）を入力してください（30-120）：', String(this.data.sessionMinutes || 60));
+                if (newMinutes !== null) {
+                    const parsed = parseInt(newMinutes);
+                    if (!isNaN(parsed) && parsed >= 30 && parsed <= 120) {
+                        this.data.sessionMinutes = parsed;
+                        this.data.attendanceCache = null; // キャッシュをクリア
+                        this.saveData();
+                        this.updateHome();
+                        this.goToSettings();
+                    } else {
+                        alert('30〜120の数字を入力してください');
+                    }
+                }
+            },
+
+            exportData() {
+                const dataStr = JSON.stringify(this.data, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `asakatsu_backup_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                alert('データをエクスポートしました');
+            },
+
+            importData() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        try {
+                            const imported = JSON.parse(ev.target.result);
+                            this.data = imported;
+                            this.saveData();
+                            alert('データをインポートしました');
+                            this.goHome();
+                        } catch (err) {
+                            alert('ファイルが破損しています');
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+                input.click();
+            },
+
+            deleteAllData() {
+                if (confirm('すべてのデータを削除します。この操作は取り消せません。本当に削除しますか？')) {
+                    localStorage.clear();
+                    this.data = {
+                        userName: '',
+                        identity: '',
+                        why: '',
+                        goals: [],
+                        checkins: [],
+                        reflections: [],
+                        graduated: false,
+                        graduationMessage: ''
+                    };
+                    this.showScreen('onboardingScreen');
+                    alert('すべてのデータを削除しました。');
+                }
+            },
+
+            // ============ 卒業 ============
+            goToGraduation() {
+                this.showScreen('graduationScreen');
+            },
+
+            cancelGraduation() {
+                this.goToSettings();
+            },
+
+            confirmGraduation() {
+                const message = document.getElementById('graduationMessage').value;
+                const nextStep = document.getElementById('nextStepMessage').value;
+                if (!message) {
+                    alert('朝活で学んだことを入力してください');
+                    return;
+                }
+
+                this.data.graduated = true;
+                this.data.graduationMessage = { message, nextStep };
+                this.saveData();
+
+                const totalDays = this.data.checkins.length;
+                const totalCheckins = this.data.checkins.length;
+
+                const profile = `
+                    <div style="margin-bottom: 12px;">
+                        <div style="font-size: 18px; font-weight: 600; color: #00838f; margin-bottom: 4px;">🎓 卒業スポットライト</div>
+                        <div style="font-size: 14px; color: #333; margin: 8px 0;">
+                            <div><strong>氏名：</strong> ${this.data.userName}さん</div>
+                            <div><strong>朝活継続期間：</strong> ${totalDays}日</div>
+                            <div><strong>参加回数：</strong> ${totalCheckins}回</div>
+                            <div><strong>アイデンティティ宣言：</strong> ${this.data.identityStatement}</div>
+                        </div>
+                    </div>
+                    <div style="background: white; padding: 12px; border-radius: 8px; margin: 12px 0; border-left: 4px solid #00838f;">
+                        <div style="font-weight: 600; color: #333; font-size: 13px; margin-bottom: 6px;">🌟 朝活で学んだこと</div>
+                        <div style="font-size: 13px; color: #666; line-height: 1.6;">${message}</div>
+                    </div>
+                    ${nextStep ? `
+                        <div style="background: white; padding: 12px; border-radius: 8px; border-left: 4px solid #51cf66;">
+                            <div style="font-weight: 600; color: #333; font-size: 13px; margin-bottom: 6px;">🚀 これからのステップ</div>
+                            <div style="font-size: 13px; color: #666;">${nextStep}</div>
+                        </div>
+                    ` : ''}
+                `;
+
+                document.getElementById('graduationProfile').innerHTML = profile;
+
+                // 運営者通知メール
+                const notificationSubject = `朝活を卒業されました（${this.data.userName}より）`;
+                const notificationBody = `遊正さん\n\n${this.data.userName}さんが朝活を卒業されました。\n\nアイデンティティ宣言：\n「${this.data.identityStatement}」\n\n朝活で学んだこと：\n${message}\n\n${nextStep ? `これからのステップ：\n${nextStep}` : ''}\n\n今後ともよろしくお願いします。`;
+                const mailtoUrl = `mailto:${this.data.operatorEmail}?subject=${encodeURIComponent(notificationSubject)}&body=${encodeURIComponent(notificationBody)}`;
+
+                const overlay = document.createElement('div');
+                overlay.className = 'modal-overlay active';
+                overlay.innerHTML = `
+                    <div class="modal" style="text-align: center;">
+                        <div style="font-size: 40px; margin-bottom: 16px;">💌</div>
+                        <div style="font-size: 16px; font-weight: 600; color: #333; margin-bottom: 12px;">運営者に卒業をお知らせしますか？</div>
+                        <p style="color: #666; font-size: 13px; margin-bottom: 16px;">遊正さんにメールで通知が届きます。任意です。</p>
+                        <button class="btn-primary" onclick="window.location.href='${mailtoUrl}'; document.querySelector('.modal-overlay').remove();" style="width: 100%; margin-bottom: 8px;">メールで送信</button>
+                        <button class="btn-secondary" onclick="document.querySelector('.modal-overlay').remove();" style="width: 100%;">スキップ</button>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+
+                setTimeout(() => this.showScreen('graduationCompleteScreen'), 500);
+            },
+
+            // ============ ナビゲーション ============
+            updateNavigation(active) {
+                document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                if (active === 'home') document.querySelectorAll('.nav-item')[0].classList.add('active');
+                else if (active === 'checkin') document.querySelectorAll('.nav-item')[1].classList.add('active');
+                else if (active === 'reflection') document.querySelectorAll('.nav-item')[2].classList.add('active');
+                else if (active === 'settings') document.querySelectorAll('.nav-item')[3].classList.add('active');
+            }
+        };
+
+        // ============ アプリ起動 ============
+        window.addEventListener('DOMContentLoaded', () => app.init());
+    </script>
+</body>
+</html>
